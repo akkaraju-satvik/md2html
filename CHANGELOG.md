@@ -1,6 +1,7 @@
-# Changelog (v0.1.0)
+# Changelog
 
-- add LICENSE
+- docs: update README.md
+- add LICENSE and CHANGELOG
 - feat: implement code blocks conversion
 - deps: use cobra for cli commands
 - docs: add README.md

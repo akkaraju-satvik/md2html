@@ -1,4 +1,4 @@
-# md2html
+# md2htm
 
 ## Description
 
@@ -9,7 +9,7 @@ A simple markdown to html converter.
 Use this command to convert a markdown file to html:
 
 ```bash
-go run main.go <input.md>
+go run main.go -f <input.md>
 ```
 
 Metadata can be added to the markdown file using the following format:
