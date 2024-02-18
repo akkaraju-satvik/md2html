@@ -6,6 +6,8 @@ import (
 	"strings"
 )
 
+var metadata = []string{"pageTitle", "authorName", "description"}
+
 func main() {
 	fileName := os.Args[1]
 	fileNameWithoutExtension := strings.Split(fileName, ".")[0]
@@ -23,8 +25,22 @@ func main() {
 	if fileLines[len(fileLines)-1] == "" {
 		fileLines = fileLines[:len(fileLines)-1]
 	}
+	var metadataValues = make(map[string]string)
 	for i := 0; i < len(fileLines); i++ {
 		// check if the prefix is in the map
+		if fileLines[i] == "---" {
+			for j := i + 1; j < len(fileLines); j++ {
+				if fileLines[j] == "---" {
+					fileLines = append(fileLines[:i], fileLines[j+1:]...)
+					break
+				}
+				for _, v := range metadata {
+					if strings.HasPrefix(fileLines[j], v) {
+						metadataValues[v] = fileLines[j][len(v)+2:]
+					}
+				}
+			}
+		}
 		for k := range utils.Tags {
 			if strings.HasPrefix(fileLines[i], k) {
 				if k == "- " || k == "* " {
@@ -51,6 +67,9 @@ func main() {
 		panic(err)
 	}
 	// convert fileNameWithoutExtension to title case
+	for _, v := range metadata {
+		templateHtml = []byte(strings.Replace(string(templateHtml), "$"+v, metadataValues[v], -1))
+	}
 	templateHtml = []byte(strings.Replace(string(templateHtml), "$data", htmlFormatOfFile, 1))
 	os.WriteFile(fileNameWithoutExtension+".html", templateHtml, 0644)
 }

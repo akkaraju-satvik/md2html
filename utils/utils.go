@@ -14,6 +14,9 @@ var Tags = map[string]string{
 
 func ConvertToHTMLTags(mdPrefix string, lineContent string) string {
 	tag, ok := Tags[mdPrefix]
+	if lineContent == "---" {
+		return ""
+	}
 	lineContent = lineContent[len(mdPrefix):]
 	if !ok {
 		return "<p>" + lineContent + "</p>"
