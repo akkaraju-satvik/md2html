@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"md2htm/utils"
 	"os"
 	"strings"
@@ -19,39 +18,39 @@ func main() {
 		panic(err)
 	}
 	// fmt.Println(string(file))
-	x := string(file)
-
-	xa := strings.Split(x, "\n")
-	if xa[len(xa)-1] == "" {
-		xa = xa[:len(xa)-1]
+	fileContents := string(file)
+	fileLines := strings.Split(fileContents, "\n")
+	if fileLines[len(fileLines)-1] == "" {
+		fileLines = fileLines[:len(fileLines)-1]
 	}
-	for i := 0; i < len(xa); i++ {
+	for i := 0; i < len(fileLines); i++ {
 		// check if the prefix is in the map
 		for k := range utils.Tags {
-			if strings.HasPrefix(xa[i], k) {
+			if strings.HasPrefix(fileLines[i], k) {
 				if k == "- " || k == "* " {
-					if i == 0 || (!strings.HasPrefix(xa[i-1], "<ul>")) {
-						xa[i] = "<ul><li>" + xa[i][2:] + "</li>"
+					if i == 0 || (!strings.HasPrefix(fileLines[i-1], "<ul>")) {
+						fileLines[i] = "<ul><li>" + fileLines[i][2:] + "</li>"
 					} else {
-						xa[i] = "<li>" + xa[i][2:] + "</li>"
+						fileLines[i] = "<li>" + fileLines[i][2:] + "</li>"
 					}
-					if i == len(xa)-1 || (!strings.HasPrefix(xa[i+1], "- ") && !strings.HasPrefix(xa[i+1], "* ")) {
-						xa[i] = xa[i] + "</ul>"
+					if i == len(fileLines)-1 || (!strings.HasPrefix(fileLines[i+1], "- ") && !strings.HasPrefix(fileLines[i+1], "* ")) {
+						fileLines[i] = fileLines[i] + "</ul>"
 					}
 				} else {
-					if i > 0 && (strings.HasPrefix(xa[i-1], "- ") || strings.HasPrefix(xa[i-1], "* ")) {
-						xa[i-1] = xa[i-1] + "</ul>"
+					if i > 0 && (strings.HasPrefix(fileLines[i-1], "- ") || strings.HasPrefix(fileLines[i-1], "* ")) {
+						fileLines[i-1] = fileLines[i-1] + "</ul>"
 					}
-					xa[i] = utils.ConvertToHTMLTags(k, xa[i])
+					fileLines[i] = utils.ConvertToHTMLTags(k, fileLines[i])
 				}
 			}
 		}
 	}
-	html := strings.Join(xa, "\n")
-	fmt.Println(html)
-	templateHtml, err := os.ReadFile("template/template.html")
+	htmlFormatOfFile := strings.Join(fileLines, "\n")
+	templateHtml, err := os.ReadFile("template.html")
 	if err != nil {
 		panic(err)
 	}
-	os.WriteFile(fileNameWithoutExtension+".html", []byte(strings.Replace(string(templateHtml), "$data", html, 1)), 0644)
+	// convert fileNameWithoutExtension to title case
+	templateHtml = []byte(strings.Replace(string(templateHtml), "$data", htmlFormatOfFile, 1))
+	os.WriteFile(fileNameWithoutExtension+".html", templateHtml, 0644)
 }
