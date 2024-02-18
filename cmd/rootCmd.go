@@ -48,12 +48,15 @@ func convert(inputFileName string, output string) (string, error) {
 	}
 	var metadataValues = make(map[string]string)
 	for i := 0; i < len(fileLines); i++ {
-		if fileLines[i] == "\n" {
+		tagFound := false
+		if fileLines[i] == "" {
 			fileLines[i] = ""
+			tagFound = true
 		}
 		if i == 0 && fileLines[i] == "---" {
 			j := utils.HandleMetadata(fileLines, &metadataValues)
 			fileLines = fileLines[j+1:]
+			tagFound = true
 		}
 		for k := range utils.Tags {
 			if strings.HasPrefix(fileLines[i], k) {
@@ -67,7 +70,12 @@ func convert(inputFileName string, output string) (string, error) {
 					}
 					fileLines[i] = utils.ConvertToHTMLTags(k, fileLines[i])
 				}
+				tagFound = true
 			}
+		}
+		if !tagFound {
+			fileLines[i] = "<p>" + fileLines[i] + "</p>"
+			tagFound = true
 		}
 	}
 	htmlFormatOfFile := strings.Join(fileLines, "\n")
