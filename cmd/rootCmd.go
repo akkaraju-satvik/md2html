@@ -48,11 +48,19 @@ func convert(inputFileName string, output string) (string, error) {
 	}
 	var metadataValues = make(map[string]string)
 	for i := 0; i < len(fileLines); i++ {
-		utils.HandleMetadata(&fileLines, &metadataValues, i)
+		if fileLines[i] == "\n" {
+			fileLines[i] = ""
+		}
+		if i == 0 && fileLines[i] == "---" {
+			j := utils.HandleMetadata(fileLines, &metadataValues)
+			fileLines = fileLines[j+1:]
+		}
 		for k := range utils.Tags {
 			if strings.HasPrefix(fileLines[i], k) {
 				if k == "- " || k == "* " {
 					utils.HandleLists(&fileLines, i, k)
+				} else if strings.Contains(fileLines[i], "```") {
+					utils.HandleCodeBlocks(&fileLines, i)
 				} else {
 					if i > 0 && (strings.HasPrefix(fileLines[i-1], "- ") || strings.HasPrefix(fileLines[i-1], "* ")) {
 						fileLines[i-1] = fileLines[i-1] + "</ul>"

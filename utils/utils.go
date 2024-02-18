@@ -1,6 +1,8 @@
 package utils
 
-import "strings"
+import (
+	"strings"
+)
 
 var Tags = map[string]string{
 	"# ":   "h1",
@@ -12,6 +14,7 @@ var Tags = map[string]string{
 	"__ ":  "strong",
 	"~~ ":  "del",
 	"` ":   "code",
+	"```":  "pre",
 }
 
 var HtmlTemplate = `
@@ -23,6 +26,20 @@ var HtmlTemplate = `
   <meta name="author" content="$authorName">
   <meta name="description" content="$description">
   <title>$pageTitle</title>
+	<style>
+		* {
+			font-family: sans-serif;
+		}
+		pre {
+			width: max-content;
+			padding: 1em;
+			background-color: #e0e0e0;
+			border-radius: 5px;
+		}
+		code {
+			font-family: monospace;
+		}
+	</style>
 </head>
 <body>
   $data
@@ -44,23 +61,26 @@ func ConvertToHTMLTags(mdPrefix string, lineContent string) string {
 	return "<" + tag + ">" + lineContent + "</" + tag + ">"
 }
 
-func HandleMetadata(fileLines *[]string, metadataValues *map[string]string, i int) {
-	if i == 0 && (*fileLines)[i] == "---" {
-		for j := i + 1; j < len(*fileLines); j++ {
-			if (*fileLines)[j] == "---" {
-				*fileLines = append((*fileLines)[:i], (*fileLines)[j+1:]...)
+func HandleMetadata(fileLines []string, metadataValues *map[string]string) int {
+	i, j := 0, 0
+	if i == 0 && fileLines[i] == "---" {
+	x:
+		for j = i + 1; j < len(fileLines); j++ {
+			if (fileLines)[j] == "---" {
 				break
 			}
 			for _, v := range Metadata {
-				if strings.HasPrefix((*fileLines)[j], v) {
-					(*metadataValues)[v] = (*fileLines)[j][len(v)+2:]
+				if strings.HasPrefix((fileLines)[j], v) {
+					(*metadataValues)[v] = (fileLines)[j][len(v)+2:]
+					continue x
 				}
 			}
 		}
 	}
+	return j
 }
 
-func HandleLists(fileLines *[]string, i int, k string) {
+func HandleLists(fileLines *[]string, i int, k string) int {
 	lines := *fileLines
 	if i == 0 || (!strings.HasPrefix(lines[i-1], "<ul>")) {
 		lines[i] = "<ul><li>" + lines[i][2:] + "</li>"
@@ -69,5 +89,31 @@ func HandleLists(fileLines *[]string, i int, k string) {
 	}
 	if i == len(lines)-1 || (!strings.HasPrefix(lines[i+1], "- ") && !strings.HasPrefix(lines[i+1], "* ")) {
 		lines[i] = lines[i] + "</ul>"
+	}
+	return i
+}
+
+func HandleCodeBlocks(fileLines *[]string, i int) {
+	var codeBlock, codeTag string
+	language := strings.Split((*fileLines)[i], "```")[1]
+	if language != "" {
+		codeBlock = language + "\n"
+		codeTag = "<code class=\"language-" + language + "\">"
+	} else {
+		codeTag = "<code>"
+	}
+	var j int
+	for j = i; j < len((*fileLines)); j++ {
+		if (*fileLines)[j] == "```" {
+			codeBlock = strings.Join((*fileLines)[i+1:j], "\n")
+			break
+		}
+	}
+	(*fileLines)[i] = "<pre>" + codeTag + codeBlock + "</code></pre>"
+	(*fileLines)[i] = strings.TrimSpace((*fileLines)[i])
+	if j != len((*fileLines))-1 {
+		(*fileLines) = append((*fileLines)[:i+1], (*fileLines)[j+1:]...)
+	} else {
+		(*fileLines) = (*fileLines)[:i+1]
 	}
 }
