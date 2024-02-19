@@ -62,10 +62,10 @@ func ConvertToHTMLTags(mdPrefix string, lineContent string) string {
 }
 
 func HandleMetadata(fileLines []string, metadataValues *map[string]string) int {
-	i, j := 0, 0
-	if i == 0 && fileLines[i] == "---" {
+	var j int
+	if fileLines[0] == "---" {
 	x:
-		for j = i + 1; j < len(fileLines); j++ {
+		for j = 1; j < len(fileLines); j++ {
 			if (fileLines)[j] == "---" {
 				break
 			}
