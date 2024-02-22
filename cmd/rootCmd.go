@@ -60,20 +60,19 @@ func convert(inputFileName string, output string) (string, error) {
 			fileLines = fileLines[j+1:]
 			tagFound = true
 		}
-		for k := range utils.Tags {
-			if strings.HasPrefix(fileLines[i], k) {
-				if k == "- " || k == "* " {
-					utils.HandleLists(&fileLines, i, k)
-				} else if strings.Contains(fileLines[i], "```") {
-					utils.HandleCodeBlocks(&fileLines, i)
-				} else {
-					if i > 0 && (strings.HasPrefix(fileLines[i-1], "- ") || strings.HasPrefix(fileLines[i-1], "* ")) {
-						fileLines[i-1] = fileLines[i-1] + "</ul>"
-					}
-					fileLines[i] = utils.ConvertToHTMLTags(k, fileLines[i])
+		prefix := strings.Split(fileLines[i], " ")[0]
+		if utils.Tags[prefix] != "" || strings.Contains(fileLines[i], "```") {
+			if prefix == "-" || prefix == "*" {
+				utils.HandleLists(&fileLines, i, prefix)
+			} else if strings.Contains(fileLines[i], "```") {
+				utils.HandleCodeBlocks(&fileLines, i)
+			} else {
+				if i > 0 && (strings.HasPrefix(fileLines[i-1], "- ") || strings.HasPrefix(fileLines[i-1], "* ")) {
+					fileLines[i-1] = fileLines[i-1] + "</ul>"
 				}
-				tagFound = true
+				fileLines[i] = utils.ConvertToHTMLTags(prefix, fileLines[i])
 			}
+			tagFound = true
 		}
 		if !tagFound {
 			fileLines[i] = "<p>" + fileLines[i] + "</p>"

@@ -9,16 +9,16 @@ import (
 )
 
 var Tags = map[string]string{
-	"# ":   "h1",
-	"## ":  "h2",
-	"### ": "h3",
-	"- ":   "li",
-	"* ":   "li",
-	"** ":  "strong",
-	"__ ":  "strong",
-	"~~ ":  "del",
-	"` ":   "code",
-	"```":  "pre",
+	"#":   "h1",
+	"##":  "h2",
+	"###": "h3",
+	"-":   "li",
+	"*":   "li",
+	"**":  "strong",
+	"__":  "strong",
+	"~~":  "del",
+	"`":   "code",
+	"```": "pre",
 }
 
 var HtmlTemplate = `
