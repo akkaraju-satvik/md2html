@@ -82,7 +82,7 @@ func HandleMetadata(fileLines []string, metadataValues *map[string]string) int {
 
 func HandleLists(fileLines *[]string, i int, k string) int {
 	lines := *fileLines
-	if i == 0 || (!strings.HasPrefix(lines[i-1], "<ul>")) {
+	if i == 0 || (!strings.HasPrefix(lines[i-1], "<ul>") && !strings.HasPrefix(lines[i-1], "<li>")) {
 		lines[i] = "<ul><li>" + lines[i][2:] + "</li>"
 	} else {
 		lines[i] = "<li>" + lines[i][2:] + "</li>"
