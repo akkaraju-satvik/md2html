@@ -28,7 +28,6 @@ You can add your data to a `yaml` file and use it to provide metadata to your pa
 
 ```yaml
 pageTitle: TITLE
-authorName: AUTHOR
 description: DESCRIPTION
 version: VERSION
 author:
