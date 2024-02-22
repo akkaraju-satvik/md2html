@@ -21,3 +21,18 @@ authorName: AUTHOR
 description: DESCRIPTION
 ---
 ```
+
+## Configuration
+
+You can add your data to a `yaml` file and use it to provide metadata to your page.
+
+```yaml
+pageTitle: TITLE
+authorName: AUTHOR
+description: DESCRIPTION
+version: VERSION
+author:
+  name: AUTHOR
+  email: EMAIL
+github: GITHUB
+```

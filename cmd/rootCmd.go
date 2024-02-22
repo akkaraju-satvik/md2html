@@ -24,6 +24,8 @@ var rootCmd = &cobra.Command{
 		if output == "" {
 			output = fileNameWithoutExtension + ".html"
 		}
+		projectConfigFileName := cmd.Flag("config-file").Value.String()
+		utils.LoadConfig(projectConfigFileName)
 		convertedFileData, err := convert(inputFileName, output)
 		if err != nil {
 			log.Fatal(err)
@@ -83,8 +85,8 @@ func convert(inputFileName string, output string) (string, error) {
 	if err != nil {
 		panic(err)
 	}
-	for _, v := range utils.Metadata {
-		templateHtml = strings.Replace(string(templateHtml), "$"+v, metadataValues[v], -1)
+	for k, v := range metadataValues {
+		templateHtml = strings.Replace(string(templateHtml), "$"+k, v, -1)
 	}
 	templateHtml = strings.Replace(string(templateHtml), "$data", htmlFormatOfFile, 1)
 	return string(templateHtml), nil
@@ -94,5 +96,6 @@ func Execute() {
 	rootCmd.Flags().StringP("file", "f", "", "The file to convert")
 	rootCmd.MarkFlagRequired("file")
 	rootCmd.Flags().StringP("output", "o", "", "The output file")
+	rootCmd.Flags().StringP("config-file", "c", "", "Project Configuration file")
 	rootCmd.Execute()
 }
