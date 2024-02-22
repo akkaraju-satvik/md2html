@@ -23,9 +23,9 @@ var HtmlTemplate = `
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="author" content="$authorName">
+  <meta name="author" content="$authorName &lt;$authorEmail&gt;">
   <meta name="description" content="$description">
-  <title>$pageTitle</title>
+  <title>$pageTitle | $projectName</title>
 	<style>
 		* {
 			font-family: sans-serif;
@@ -47,7 +47,53 @@ var HtmlTemplate = `
 </html>
 `
 
-var Metadata = []string{"pageTitle", "authorName", "description"}
+type Config struct {
+	ProjectName string `yaml:"projectName"`
+	Description string `yaml:"description"`
+	Version     string `yaml:"version"`
+	Author      struct {
+		Name  string `yaml:"name"`
+		Email string `yaml:"email"`
+	}
+	Github string `yaml:"github"`
+}
+
+func NewConfig() Config {
+	conf := Config{}
+	conf.Author.Name = "Author Name"
+	conf.Author.Email = "author@email.com"
+	conf.Description = "Project Description"
+	conf.ProjectName = "Project Name"
+	return conf
+}
+
+var config = NewConfig()
+var Metadata = map[string]string{}
+
+func LoadConfig(configFileName string) (Config, error) {
+	if configFileName == "" {
+		fmt.Println("No config file provided, using default config")
+		return config, nil
+	}
+	file, err := os.ReadFile(configFileName)
+	if err != nil {
+		return config, fmt.Errorf("error reading file: %v", err)
+	}
+	err = yaml.Unmarshal(file, &config)
+	Metadata = map[string]string{
+		"authorName":  config.Author.Name,
+		"authorEmail": config.Author.Email,
+		"description": config.Description,
+		"projectName": config.ProjectName,
+		"version":     config.Version,
+		"github":      config.Github,
+		"pageTitle":   "Page Title",
+	}
+	if err != nil {
+		return config, fmt.Errorf("error unmarshalling yaml: %v", err)
+	}
+	return config, nil
+}
 
 func ConvertToHTMLTags(mdPrefix string, lineContent string) string {
 	tag, ok := Tags[mdPrefix]
@@ -64,17 +110,15 @@ func ConvertToHTMLTags(mdPrefix string, lineContent string) string {
 func HandleMetadata(fileLines []string, metadataValues *map[string]string) int {
 	var j int
 	if fileLines[0] == "---" {
-	x:
+		for k, v := range Metadata {
+			(*metadataValues)[k] = v
+		}
 		for j = 1; j < len(fileLines); j++ {
 			if (fileLines)[j] == "---" {
 				break
 			}
-			for _, v := range Metadata {
-				if strings.HasPrefix((fileLines)[j], v) {
-					(*metadataValues)[v] = (fileLines)[j][len(v)+2:]
-					continue x
-				}
-			}
+			prefix := strings.Split(fileLines[j], ": ")[0]
+			(*metadataValues)[prefix] = fileLines[j][len(prefix)+2:]
 		}
 	}
 	return j
