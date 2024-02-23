@@ -29,6 +29,7 @@ var HtmlTemplate = `
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="author" content="$authorName &lt;$authorEmail&gt;">
   <meta name="description" content="$description">
+	<link rel="icon" href="$favicon" type="image/x-icon">
   <title>$pageTitle | $projectName</title>
 	<style>
 		* {
@@ -55,6 +56,7 @@ type Config struct {
 	ProjectName string `yaml:"projectName"`
 	Description string `yaml:"description"`
 	Version     string `yaml:"version"`
+	Favicon     string `yaml:"favicon"`
 	Author      struct {
 		Name  string `yaml:"name"`
 		Email string `yaml:"email"`
@@ -91,6 +93,7 @@ func LoadConfig(configFileName string) (Config, error) {
 		"projectName": config.ProjectName,
 		"version":     config.Version,
 		"github":      config.Github,
+		"favicon":     config.Favicon,
 		"pageTitle":   "Page Title",
 	}
 	if err != nil {
