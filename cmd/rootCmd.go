@@ -51,6 +51,8 @@ func convert(inputFileName string, output string) (string, error) {
 	}
 	var metadataValues = make(map[string]string)
 	regexForInlineCode := regexp.MustCompile("^.*(`.+`)+.*(`.+`)*$")
+	regexForLinks := regexp.MustCompile("\\[.*\\]\\(.*\\)")
+	regexForImages := regexp.MustCompile("!\\[.*\\]\\(.*\\)")
 	for i := 0; i < len(fileLines); i++ {
 		tagFound := false
 		if fileLines[i] == "" {
@@ -78,6 +80,14 @@ func convert(inputFileName string, output string) (string, error) {
 		}
 		if regexForInlineCode.MatchString(fileLines[i]) {
 			fileLines[i] = utils.HandleInlineCode(fileLines[i])
+		}
+		if regexForLinks.MatchString(fileLines[i]) {
+			if !regexForImages.MatchString(fileLines[i]) {
+				fileLines[i] = utils.HandleLinks(fileLines[i])
+			}
+		}
+		if regexForImages.MatchString(fileLines[i]) {
+			fileLines[i] = utils.HandleImages(fileLines[i])
 		}
 		if !tagFound {
 			fileLines[i] = "<p>" + fileLines[i] + "</p>"

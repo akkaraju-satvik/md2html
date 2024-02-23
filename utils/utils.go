@@ -176,3 +176,17 @@ func HandleCodeBlocks(fileLines *[]string, i int) {
 		(*fileLines) = (*fileLines)[:i+1]
 	}
 }
+
+func HandleLinks(lineContent string) string {
+	splitLink := strings.Split(lineContent, "](")
+	linkText := splitLink[0][1:]
+	link := splitLink[1][:len(splitLink[1])-1]
+	return "<a href=\"" + link + "\" target=\"_blank\">" + linkText + "</a>"
+}
+
+func HandleImages(lineContent string) string {
+	splitLink := strings.Split(lineContent, "](")
+	altText := splitLink[0][2:]
+	link := splitLink[1][:len(splitLink[1])-1]
+	return "<img src=\"" + link + "\" alt=\"" + altText + "\">"
+}
