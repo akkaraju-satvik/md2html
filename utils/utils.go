@@ -17,7 +17,7 @@ var Tags = map[string]string{
 	"**":  "strong",
 	"__":  "strong",
 	"~~":  "del",
-	"`":   "code",
+	"`":   "pre",
 	"```": "pre",
 }
 
@@ -139,6 +139,17 @@ func HandleLists(fileLines *[]string, i int, k string) int {
 		lines[i] = lines[i] + "</ul>"
 	}
 	return i
+}
+
+func HandleInlineCode(lineContent string) string {
+	tickCount := strings.Count(lineContent, "`")
+	for i := 0; i < tickCount/2; i++ {
+		lineContent = strings.Replace(lineContent, "`", "<code>", 1)
+		lineContent = strings.Replace(lineContent, "`", "</code>", 1)
+		lineContent = strings.Replace(lineContent, "<code></code>", "``", -1)
+		lineContent = strings.Replace(lineContent, "</code><code>", "``", -1)
+	}
+	return lineContent
 }
 
 func HandleCodeBlocks(fileLines *[]string, i int) {

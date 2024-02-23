@@ -5,6 +5,7 @@ import (
 	"log"
 	"md2htm/utils"
 	"os"
+	"regexp"
 	"strings"
 
 	cobra "github.com/spf13/cobra"
@@ -49,6 +50,7 @@ func convert(inputFileName string, output string) (string, error) {
 		fileLines = fileLines[:len(fileLines)-1]
 	}
 	var metadataValues = make(map[string]string)
+	regexForInlineCode := regexp.MustCompile("^.*(`.+`)+.*(`.+`)*$")
 	for i := 0; i < len(fileLines); i++ {
 		tagFound := false
 		if fileLines[i] == "" {
@@ -73,6 +75,9 @@ func convert(inputFileName string, output string) (string, error) {
 				fileLines[i] = utils.ConvertToHTMLTags(prefix, fileLines[i])
 			}
 			tagFound = true
+		}
+		if regexForInlineCode.MatchString(fileLines[i]) {
+			fileLines[i] = utils.HandleInlineCode(fileLines[i])
 		}
 		if !tagFound {
 			fileLines[i] = "<p>" + fileLines[i] + "</p>"
