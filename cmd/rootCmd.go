@@ -5,7 +5,6 @@ import (
 	"log"
 	"md2htm/utils"
 	"os"
-	"regexp"
 	"strings"
 
 	cobra "github.com/spf13/cobra"
@@ -26,7 +25,9 @@ var rootCmd = &cobra.Command{
 			output = fileNameWithoutExtension + ".html"
 		}
 		projectConfigFileName := cmd.Flag("config-file").Value.String()
-		utils.LoadConfig(projectConfigFileName)
+		if err := utils.LoadConfig(projectConfigFileName); err != nil {
+			log.Fatal(err)
+		}
 		convertedFileData, err := convert(inputFileName, output)
 		if err != nil {
 			log.Fatal(err)
@@ -50,21 +51,23 @@ func convert(inputFileName string, output string) (string, error) {
 		fileLines = fileLines[:len(fileLines)-1]
 	}
 	var metadataValues = make(map[string]string)
-	regexForInlineCode := regexp.MustCompile("^.*(`.+`)+.*(`.+`)*$")
-	regexForLinks := regexp.MustCompile("\\[.*\\]\\(.*\\)")
-	regexForImages := regexp.MustCompile("!\\[.*\\]\\(.*\\)")
+	j := utils.HandleMetadata(fileLines, &metadataValues)
 	for i := 0; i < len(fileLines); i++ {
 		tagFound := false
+		fileLines[i] = strings.TrimSpace(fileLines[i])
 		if fileLines[i] == "" {
 			fileLines[i] = ""
 			tagFound = true
 		}
 		if i == 0 && fileLines[i] == "---" {
-			j := utils.HandleMetadata(fileLines, &metadataValues)
 			fileLines = fileLines[j+1:]
 			tagFound = true
 		}
+		if fileLines[i] == "---" {
+			fileLines[i] = "<hr/>"
+		}
 		prefix := strings.Split(fileLines[i], " ")[0]
+		fileLines[i] = utils.MatchAndReplace(fileLines[i])
 		if utils.Tags[prefix] != "" || strings.Contains(fileLines[i], "```") {
 			if prefix == "-" || prefix == "*" {
 				utils.HandleLists(&fileLines, i, prefix)
@@ -78,19 +81,13 @@ func convert(inputFileName string, output string) (string, error) {
 			}
 			tagFound = true
 		}
-		if regexForInlineCode.MatchString(fileLines[i]) {
-			fileLines[i] = utils.HandleInlineCode(fileLines[i])
-		}
-		if regexForLinks.MatchString(fileLines[i]) {
-			if !regexForImages.MatchString(fileLines[i]) {
-				fileLines[i] = utils.HandleLinks(fileLines[i])
-			}
-		}
-		if regexForImages.MatchString(fileLines[i]) {
-			fileLines[i] = utils.HandleImages(fileLines[i])
-		}
 		if !tagFound {
-			fileLines[i] = "<p>" + fileLines[i] + "</p>"
+			if i-1 >= 0 && fileLines[i-1] == "" {
+				fileLines[i] = "<p>" + fileLines[i]
+			}
+			if i+1 < len(fileLines) && fileLines[i+1] == "" {
+				fileLines[i] = fileLines[i] + "</p>"
+			}
 			tagFound = true
 		}
 	}
@@ -99,10 +96,10 @@ func convert(inputFileName string, output string) (string, error) {
 	if err != nil {
 		panic(err)
 	}
+	templateHtml = strings.Replace(string(templateHtml), "$data", htmlFormatOfFile, 1)
 	for k, v := range metadataValues {
 		templateHtml = strings.Replace(string(templateHtml), "$"+k, v, -1)
 	}
-	templateHtml = strings.Replace(string(templateHtml), "$data", htmlFormatOfFile, 1)
 	return string(templateHtml), nil
 }
 
