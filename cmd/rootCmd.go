@@ -5,6 +5,7 @@ import (
 	"log"
 	"md2htm/lib"
 	"os"
+	"path"
 	"strings"
 
 	cobra "github.com/spf13/cobra"
@@ -34,6 +35,20 @@ var rootCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 		err = os.WriteFile(output, []byte(convertedFileData), 0644)
+		if err != nil {
+			if os.IsNotExist(err) {
+				dir := path.Dir(output)
+				fmt.Println(dir)
+				err = os.MkdirAll(dir, 0755)
+				if err != nil {
+					log.Fatal(err)
+				}
+				err = os.WriteFile(output, []byte(convertedFileData), 0644)
+				if err != nil {
+					log.Fatal(err)
+				}
+			}
+		}
 		if err != nil {
 			log.Fatal(err)
 		}
