@@ -1,97 +1,11 @@
-package utils
+package lib
 
 import (
 	"fmt"
 	"html"
-	"os"
 	"regexp"
 	"strings"
-
-	"gopkg.in/yaml.v3"
 )
-
-var Tags = map[string]string{
-	"#":   "h1",
-	"##":  "h2",
-	"###": "h3",
-	"-":   "li",
-	"*":   "li",
-	"**":  "strong",
-	"__":  "strong",
-	"~~":  "del",
-	"`":   "pre",
-	"```": "pre",
-}
-
-var HtmlTemplate = `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="author" content="$authorName &lt;$authorEmail&gt;">
-  <meta name="description" content="$description">
-	<link rel="icon" href="$favicon" type="image/x-icon">
-  <title>$pageTitle | $projectName</title>
-	<style>
-		* {
-			font-family: sans-serif;
-		}
-		pre {
-			width: max-content;
-			padding: 1em;
-			display: inline-block;
-			background-color: #e0e0e0;
-			border-radius: 5px;
-		}
-		code {
-			font-family: monospace;
-			background-color: #e0e0e0;
-			padding: 0.2em;
-		}
-		.container {
-			width: 80%;
-			margin: 0 auto;
-		}
-		h1 {
-			text-align: center;
-		}
-		a {
-			color: #000000;
-		}
-	</style>
-</head>
-<body>
-	<div class="container">
-  	$data
-	</div>
-</body>
-</html>
-`
-
-type Config struct {
-	ProjectName string `yaml:"projectName"`
-	Description string `yaml:"description"`
-	Version     string `yaml:"version"`
-	Favicon     string `yaml:"favicon"`
-	Author      struct {
-		Name  string `yaml:"name"`
-		Email string `yaml:"email"`
-	}
-	Github string `yaml:"github"`
-}
-
-func NewConfig() Config {
-	conf := Config{}
-	conf.Author.Name = "Author Name"
-	conf.Author.Email = "author@email.com"
-	conf.Description = "Project Description"
-	conf.ProjectName = "Project Name"
-	return conf
-}
-
-var config = NewConfig()
-var Metadata = map[string]string{}
 
 var LinkRegex = `\[.*\]\(.*\)`
 var ImageRegex = `!\[.*\]\(.*\)`
@@ -106,61 +20,6 @@ var regexForBold = regexp.MustCompile(`\*\*.*\*\*`)
 var regexForItalic = regexp.MustCompile(`\*.*\*`)
 
 var regexForFullLineTags = regexp.MustCompile(fmt.Sprintf(`^((%s)|(%s)|(%s)|(%s)|(%s)).{0,1}$`, LinkRegex, ImageRegex, BoldRegex, ItalicRegex, InlineCodeRegex))
-
-func LoadConfig(configFileName string) error {
-	if configFileName == "" {
-		fmt.Println("No config file provided, using default config")
-		return nil
-	}
-	file, err := os.ReadFile(configFileName)
-	if err != nil {
-		return fmt.Errorf("error reading file: %v", err)
-	}
-	err = yaml.Unmarshal(file, &config)
-	Metadata = map[string]string{
-		"authorName":  config.Author.Name,
-		"authorEmail": config.Author.Email,
-		"description": config.Description,
-		"projectName": config.ProjectName,
-		"version":     config.Version,
-		"github":      config.Github,
-		"favicon":     config.Favicon,
-		"pageTitle":   "Page Title",
-	}
-	if err != nil {
-		return fmt.Errorf("error unmarshalling yaml: %v", err)
-	}
-	return nil
-}
-
-func ConvertToHTMLTags(mdPrefix string, lineContent string) string {
-	tag, ok := Tags[mdPrefix]
-	if lineContent == "---" {
-		return ""
-	}
-	lineContent = lineContent[len(mdPrefix):]
-	if !ok {
-		return "<p>" + lineContent + "</p>"
-	}
-	return "<" + tag + ">" + lineContent + "</" + tag + ">"
-}
-
-func HandleMetadata(fileLines []string, metadataValues *map[string]string) int {
-	var j int
-	for k, v := range Metadata {
-		(*metadataValues)[k] = v
-	}
-	if fileLines[0] == "---" {
-		for j = 1; j < len(fileLines); j++ {
-			if (fileLines)[j] == "---" {
-				break
-			}
-			prefix := strings.Split(fileLines[j], ": ")[0]
-			(*metadataValues)[prefix] = fileLines[j][len(prefix)+2:]
-		}
-	}
-	return j
-}
 
 func HandleLists(fileLines *[]string, i int, k string) int {
 	lines := *fileLines
@@ -297,4 +156,25 @@ func MatchAndReplace(lineContent string) string {
 	}
 
 	return lineContent
+}
+
+func ConvertToHTMLTags(mdPrefix string, lineContent string) string {
+	tag, ok := Tags[mdPrefix]
+	if lineContent == "---" {
+		return ""
+	}
+	lineContent = lineContent[len(mdPrefix):]
+	if !ok {
+		return "<p>" + lineContent + "</p>"
+	}
+	return "<" + tag + ">" + lineContent + "</" + tag + ">"
+}
+
+func HandleParagraphs(fileLines *[]string, i int) {
+	if i-1 >= 0 && (*fileLines)[i-1] == "" {
+		(*fileLines)[i] = "<p>" + (*fileLines)[i]
+	}
+	if i+1 < len((*fileLines)) && (*fileLines)[i+1] == "" {
+		(*fileLines)[i] = (*fileLines)[i] + "</p>"
+	}
 }
