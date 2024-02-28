@@ -1,6 +1,9 @@
 package lib
 
 import (
+	"errors"
+	"os"
+	"path"
 	"strings"
 )
 
@@ -66,9 +69,9 @@ var HtmlTemplate = `
 </html>
 `
 
-var Metadata = map[string]string{}
+var Metadata = map[string]interface{}{}
 
-func HandleMetadata(fileLines []string, metadataValues *map[string]string) int {
+func HandleMetadata(fileLines []string, metadataValues *map[string]interface{}) int {
 	var j int
 	for k, v := range Metadata {
 		(*metadataValues)[k] = v
@@ -83,4 +86,39 @@ func HandleMetadata(fileLines []string, metadataValues *map[string]string) int {
 		}
 	}
 	return j
+}
+
+func CopyAssets(outputFileName string, assetsDir string) error {
+	files, err := os.ReadDir(assetsDir)
+	assetsDir = path.Clean(assetsDir)
+	outputDir := path.Dir(outputFileName)
+	os.RemoveAll(outputDir + "/" + assetsDir)
+	if err != nil {
+		return errors.New("error reading assets directory: ")
+	}
+	_ = os.MkdirAll(outputDir+"/"+assetsDir, 0755)
+	done := make(chan bool)
+	for _, file := range files {
+		go func(file os.DirEntry) error {
+			if file.IsDir() {
+				CopyAssets(outputFileName, assetsDir+"/"+file.Name())
+			} else {
+				outputAssetFile := outputDir + "/" + assetsDir + "/" + file.Name()
+				fileContents, err := os.ReadFile(assetsDir + "/" + file.Name())
+				if err != nil {
+					return errors.New("error reading file: ")
+				}
+				err = os.WriteFile(outputAssetFile, fileContents, 0644)
+				if err != nil {
+					return errors.New("error writing file: ")
+				}
+			}
+			done <- true
+			return nil
+		}(file)
+	}
+	for range files {
+		<-done
+	}
+	return nil
 }

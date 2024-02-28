@@ -171,10 +171,16 @@ func ConvertToHTMLTags(mdPrefix string, lineContent string) string {
 }
 
 func HandleParagraphs(fileLines *[]string, i int) {
+	lastLineIndex := len((*fileLines)) - 1
+	isLastLine := i == lastLineIndex
 	if i-1 >= 0 && (*fileLines)[i-1] == "" {
 		(*fileLines)[i] = "<p>" + (*fileLines)[i]
 	}
-	if i+1 < len((*fileLines)) && (*fileLines)[i+1] == "" {
-		(*fileLines)[i] = (*fileLines)[i] + "</p>"
+	if i <= lastLineIndex {
+		if !isLastLine && (*fileLines)[i+1] == "" {
+			(*fileLines)[i] = (*fileLines)[i] + "</p>"
+		} else if isLastLine && (*fileLines)[i] != "" {
+			(*fileLines)[i] = (*fileLines)[i] + "</p>"
+		}
 	}
 }
