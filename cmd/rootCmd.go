@@ -38,7 +38,6 @@ var rootCmd = &cobra.Command{
 		if err != nil {
 			if os.IsNotExist(err) {
 				dir := path.Dir(output)
-				fmt.Println(dir)
 				err = os.MkdirAll(dir, 0755)
 				if err != nil {
 					log.Fatal(err)
