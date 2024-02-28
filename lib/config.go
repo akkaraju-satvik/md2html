@@ -17,7 +17,10 @@ type Config struct {
 		Name  string `yaml:"name"`
 		Email string `yaml:"email"`
 	}
-	Github string `yaml:"github"`
+	AssetsDir      string   `yaml:"assetsDir"`
+	OutputDir      string   `yaml:"outputDir"`
+	Github         string   `yaml:"github"`
+	CustomDataFile []string `yaml:"customDataFile"`
 }
 
 func newConfig() Config {
@@ -29,19 +32,16 @@ func newConfig() Config {
 	conf.Version = "1.0.0"
 	conf.Favicon = "favicon.ico"
 	conf.Github = "https://github.com"
+	conf.AssetsDir = "assets"
+	conf.OutputDir = "dist"
 	return conf
 }
 
 var conf = newConfig()
 
-func LoadConfigAndHandleCustomData(projectConfigFileName string, customDataFile string) error {
+func LoadConfigAndHandleCustomData(projectConfigFileName string) error {
 	if err := loadConfig(projectConfigFileName); err != nil {
 		return err
-	}
-	if customDataFile != "" {
-		if err := handleCustomData(customDataFile); err != nil {
-			return err
-		}
 	}
 	return nil
 }
@@ -56,7 +56,7 @@ func loadConfig(configFileName string) error {
 		return fmt.Errorf("error reading file: %v", err)
 	}
 	err = yaml.Unmarshal(file, &conf)
-	Metadata = map[string]string{
+	Metadata = map[string]interface{}{
 		"authorName":  conf.Author.Name,
 		"authorEmail": conf.Author.Email,
 		"description": conf.Description,
@@ -64,17 +64,27 @@ func loadConfig(configFileName string) error {
 		"version":     conf.Version,
 		"github":      conf.Github,
 		"favicon":     conf.Favicon,
+		"assetsDir":   conf.AssetsDir,
+		"outputDir":   conf.OutputDir,
 		"pageTitle":   "Page Title",
 	}
 	if err != nil {
 		return fmt.Errorf("error unmarshalling yaml: %v", err)
+	}
+	for _, fileName := range conf.CustomDataFile {
+		if err := handleCustomData(fileName); err != nil {
+			return err
+		}
 	}
 	return nil
 }
 
 func handleCustomData(fileName string) error {
 	if !strings.HasSuffix(fileName, ".yaml") {
-		return fmt.Errorf("file is not a yaml file")
+		return fmt.Errorf("file is not a yaml file: %s", fileName)
+	}
+	if _, err := os.Stat(fileName); os.IsNotExist(err) {
+		return fmt.Errorf("file does not exist: %s", fileName)
 	}
 	fileContents, err := os.ReadFile(fileName)
 	if err != nil {

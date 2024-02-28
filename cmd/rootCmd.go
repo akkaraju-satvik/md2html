@@ -14,48 +14,53 @@ import (
 var rootCmd = &cobra.Command{
 	Use:   "md2htm",
 	Short: "Converts markdown files to html",
-	Run: func(cmd *cobra.Command, args []string) {
-		inputFileName := cmd.Flag("file").Value.String()
-		fileNameWithoutExtension := strings.Split(inputFileName, ".")[0]
-		inputFileExtension := strings.Split(inputFileName, ".")[1]
-		if inputFileExtension != "md" && inputFileExtension != "markdown" {
-			log.Fatal("File type not supported")
-		}
-		output := cmd.Flag("output").Value.String()
-		if output == "" {
-			output = fileNameWithoutExtension + ".html"
-		}
-		projectConfigFileName := cmd.Flag("config-file").Value.String()
-		customDataFile := cmd.Flag("custom-data").Value.String()
-		if err := lib.LoadConfigAndHandleCustomData(projectConfigFileName, customDataFile); err != nil {
-			log.Fatal(err)
-		}
-		convertedFileData, err := convert(inputFileName, output)
-		if err != nil {
-			log.Fatal(err)
-		}
-		err = os.WriteFile(output, []byte(convertedFileData), 0644)
-		if err != nil {
-			if os.IsNotExist(err) {
-				dir := path.Dir(output)
-				err = os.MkdirAll(dir, 0755)
-				if err != nil {
-					log.Fatal(err)
-				}
-				err = os.WriteFile(output, []byte(convertedFileData), 0644)
-				if err != nil {
-					log.Fatal(err)
-				}
-			}
-		}
-		if err != nil {
-			log.Fatal(err)
-		}
-		fmt.Println("File converted successfully")
-	},
+	Run:   convert,
 }
 
-func convert(inputFileName string, output string) (string, error) {
+func convert(cmd *cobra.Command, args []string) {
+	inputFileName := cmd.Flag("file").Value.String()
+	fileNameWithoutExtension := strings.Split(inputFileName, ".")[0]
+	inputFileExtension := strings.Split(inputFileName, ".")[1]
+	if inputFileExtension != "md" && inputFileExtension != "markdown" {
+		log.Fatal("File type not supported")
+	}
+	projectConfigFileName := cmd.Flag("config-file").Value.String()
+	if err := lib.LoadConfigAndHandleCustomData(projectConfigFileName); err != nil {
+		log.Fatal(err)
+	}
+	output := cmd.Flag("output").Value.String()
+	if output == "" {
+		output = lib.Metadata["outputDir"].(string) + "/" + fileNameWithoutExtension + ".html"
+	}
+	convertedFileData, err := compile(inputFileName)
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = lib.CopyAssets(output, lib.Metadata["assetsDir"].(string))
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = os.WriteFile(output, []byte(convertedFileData), 0644)
+	if err != nil {
+		if os.IsNotExist(err) {
+			dir := path.Dir(output)
+			err = os.MkdirAll(dir, 0755)
+			if err != nil {
+				log.Fatal(err)
+			}
+			err = os.WriteFile(output, []byte(convertedFileData), 0644)
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+	}
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("File converted successfully")
+}
+
+func compile(inputFileName string) (string, error) {
 	file, err := os.ReadFile(inputFileName)
 	if err != nil {
 		return "", fmt.Errorf("error reading file: %v", err)
@@ -65,7 +70,7 @@ func convert(inputFileName string, output string) (string, error) {
 	if fileLines[len(fileLines)-1] == "" {
 		fileLines = fileLines[:len(fileLines)-1]
 	}
-	var metadataValues = make(map[string]string)
+	var metadataValues = make(map[string]interface{})
 	j := lib.HandleMetadata(fileLines, &metadataValues)
 	for i := 0; i < len(fileLines); i++ {
 		tagFound := false
@@ -102,12 +107,9 @@ func convert(inputFileName string, output string) (string, error) {
 	}
 	htmlFormatOfFile := strings.Join(fileLines, "\n")
 	templateHtml := lib.HtmlTemplate
-	if err != nil {
-		panic(err)
-	}
 	templateHtml = strings.Replace(string(templateHtml), "$data", htmlFormatOfFile, 1)
 	for k, v := range metadataValues {
-		templateHtml = strings.Replace(string(templateHtml), "$"+k, v, -1)
+		templateHtml = strings.Replace(string(templateHtml), "$"+k, v.(string), -1)
 	}
 	return string(templateHtml), nil
 }
@@ -117,6 +119,5 @@ func Execute() {
 	rootCmd.MarkFlagRequired("file")
 	rootCmd.Flags().StringP("output", "o", "", "The output file")
 	rootCmd.Flags().StringP("config-file", "c", "", "Project Configuration file")
-	rootCmd.Flags().StringP("custom-data", "d", "", "Custom data file")
 	rootCmd.Execute()
 }
