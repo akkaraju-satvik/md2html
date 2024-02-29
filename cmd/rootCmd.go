@@ -32,7 +32,19 @@ func convert(cmd *cobra.Command, args []string) {
 	if output == "" {
 		output = lib.Metadata["outputDir"].(string) + "/" + fileNameWithoutExtension + ".html"
 	}
-	convertedFileData, err := compile(inputFileName)
+	templateFileName := cmd.Flag("template-file").Value.String()
+	var templateFile string
+	if templateFileName == "" {
+		fmt.Println("No template file provided, using default template file...")
+		templateFile = lib.HtmlTemplate
+	} else {
+		templateFileData, err := os.ReadFile(templateFileName)
+		if err != nil {
+			log.Fatal(err)
+		}
+		templateFile = string(templateFileData)
+	}
+	convertedFileData, err := compile(inputFileName, templateFile)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -60,7 +72,7 @@ func convert(cmd *cobra.Command, args []string) {
 	fmt.Println("File converted successfully")
 }
 
-func compile(inputFileName string) (string, error) {
+func compile(inputFileName string, templateFile string) (string, error) {
 	file, err := os.ReadFile(inputFileName)
 	if err != nil {
 		return "", fmt.Errorf("error reading file: %v", err)
@@ -106,12 +118,11 @@ func compile(inputFileName string) (string, error) {
 		}
 	}
 	htmlFormatOfFile := strings.Join(fileLines, "\n")
-	templateHtml := lib.HtmlTemplate
-	templateHtml = strings.Replace(string(templateHtml), "$data", htmlFormatOfFile, 1)
+	templateFile = strings.Replace(templateFile, "$data", htmlFormatOfFile, 1)
 	for k, v := range metadataValues {
-		templateHtml = strings.Replace(string(templateHtml), "$"+k, v.(string), -1)
+		templateFile = strings.Replace(templateFile, "$"+k, v.(string), -1)
 	}
-	return string(templateHtml), nil
+	return templateFile, nil
 }
 
 func Execute() {
@@ -119,5 +130,6 @@ func Execute() {
 	rootCmd.MarkFlagRequired("file")
 	rootCmd.Flags().StringP("output", "o", "", "The output file")
 	rootCmd.Flags().StringP("config-file", "c", "", "Project Configuration file")
+	rootCmd.Flags().StringP("template-file", "t", "", "Template file to use for conversion")
 	rootCmd.Execute()
 }
