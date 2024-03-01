@@ -12,9 +12,10 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "md2htm",
-	Short: "Converts markdown files to html",
-	Run:   convert,
+	Use:     "md2htm",
+	Short:   "Converts markdown files to html",
+	Run:     convert,
+	Version: "0.1.0",
 }
 
 func convert(cmd *cobra.Command, args []string) {
