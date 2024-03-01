@@ -1,6 +1,3 @@
----
-pageTitle: Home
----
 # md2htm
 
 ## Description
