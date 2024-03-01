@@ -44,7 +44,6 @@ var HtmlTemplate = `
 		code {
 			font-family: monospace;
 			background-color: #e0e0e0;
-			padding: 0.2em;
 		}
 		pre code span {
 			font-family: monospace;

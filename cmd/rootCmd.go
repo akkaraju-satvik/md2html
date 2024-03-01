@@ -30,8 +30,12 @@ func convert(cmd *cobra.Command, args []string) {
 	}
 	output := cmd.Flag("output").Value.String()
 	if output == "" {
+		if lib.Metadata["outputDir"] == nil {
+			lib.Metadata["outputDir"] = "dist"
+		}
 		output = lib.Metadata["outputDir"].(string) + "/" + fileNameWithoutExtension + ".html"
 	}
+	fmt.Println("Output file: ", output)
 	templateFileName := cmd.Flag("template-file").Value.String()
 	var templateFile string
 	if templateFileName == "" {
@@ -47,6 +51,9 @@ func convert(cmd *cobra.Command, args []string) {
 	convertedFileData, err := compile(inputFileName, templateFile)
 	if err != nil {
 		log.Fatal(err)
+	}
+	if lib.Metadata["assetsDir"] == nil {
+		lib.Metadata["assetsDir"] = ""
 	}
 	err = lib.CopyAssets(output, lib.Metadata["assetsDir"].(string))
 	if err != nil {
