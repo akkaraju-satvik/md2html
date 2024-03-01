@@ -35,7 +35,6 @@ func convert(cmd *cobra.Command, args []string) {
 		}
 		output = lib.Metadata["outputDir"].(string) + "/" + fileNameWithoutExtension + ".html"
 	}
-	fmt.Println("Output file: ", output)
 	templateFileName := cmd.Flag("template-file").Value.String()
 	var templateFile string
 	if templateFileName == "" {

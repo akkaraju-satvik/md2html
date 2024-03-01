@@ -1,0 +1,105 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="author" content="Akkaraju Satvik &lt;satvik.akkaraju@gmail.com&gt;">
+  <meta name="description" content="Markdown to HTML converter">
+	<link rel="icon" href="favicon.ico" type="image/x-icon">
+  <title>Home | md2htm</title>
+	<style>
+		* {
+			font-family: sans-serif;
+		}
+		pre {
+			width: max-content;
+			padding: 1em;
+			background-color: #e0e0e0;
+			font-family: monospace;
+			border-radius: 5px;
+		}
+		code {
+			font-family: monospace;
+			background-color: #e0e0e0;
+		}
+		pre code span {
+			font-family: monospace;
+		}
+		.container {
+			width: 80%;
+			margin: 0 auto;
+		}
+		h1 {
+			text-align: center;
+		}
+		a {
+			color: #000000;
+		}
+	</style>
+</head>
+<body>
+	<div class="container">
+  	<h1> md2htm</h1>
+
+<h2> Description</h2>
+
+<p>A simple markdown to html converter.</p>
+
+<h2> Usage</h2>
+
+<p>Use this command to convert a markdown file to html:</p>
+
+<pre><code class="language-bash">md2htm -f &lt;input.md&gt;</code></pre>
+
+<p>Metadata can be added to the markdown file using the following format:</p>
+
+<pre><code class="language-markdown">---
+pageTitle: TITLE
+authorName: AUTHOR
+description: DESCRIPTION
+---</code></pre>
+
+<h2> Configuration</h2>
+
+<p>You can add your data to a <code>yaml</code> file and use it to provide metadata to your page.</p>
+
+<pre><code class="language-yaml">projectTitle: TITLE
+description: DESCRIPTION
+version: VERSION
+author:
+  name: AUTHOR
+  email: EMAIL
+github: GITHUB
+assetsDir: ASSETS_DIR
+outputDir: OUTPUT_DIR
+favicon: FAVICON</code></pre>
+
+<p>You can then use the <code>--config-file</code> flag to specify the configuration file.</p>
+
+<pre><code class="language-bash">md2htm -f &lt;input.md&gt; --config-file &lt;config-file&gt;
+# or
+md2htm -f &lt;input.md&gt; -c &lt;config-file&gt;</code></pre>
+
+<h2> Customization</h2>
+
+<p>You can customize the template used for the conversion by specifying the <code>--template-file</code> flag and providing a custom template file.</p>
+
+<pre><code class="language-bash">md2htm -f &lt;input.md&gt; --template-file &lt;template-file&gt;
+# or
+md2htm -f &lt;input.md&gt; -t &lt;template-file&gt;</code></pre>
+
+<h2> Output</h2>
+
+<p>The output will be saved in the &amp;amp;lt;code&amp;amp;gt;outputDir&amp;amp;lt;/code&amp;amp;gt; specified in the configuration file. If no output directory is specified, the output will be saved in the &amp;lt;code&amp;gt;dist&amp;lt;/code&amp;gt; directory and the file name will be the same as the input file with the &lt;code&gt;.html&lt;/code&gt; extension unless the <code>--output-file</code> flag is used to specify a custom output file.</p>
+
+<pre><code class="language-bash">md2htm -f &lt;input.md&gt; --output-file &lt;output-file&gt;
+# or
+md2htm -f &lt;input.md&gt; -o &lt;output-file&gt;</code></pre>
+
+<h2> Fun Fact</h2>
+
+<p>This page was created using this tool.</p>
+	</div>
+</body>
+</html>
