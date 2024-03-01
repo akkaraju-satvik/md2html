@@ -44,7 +44,6 @@ var HtmlTemplate = `
 		code {
 			font-family: monospace;
 			background-color: #e0e0e0;
-			padding: 0.2em;
 		}
 		pre code span {
 			font-family: monospace;
@@ -89,6 +88,9 @@ func HandleMetadata(fileLines []string, metadataValues *map[string]interface{}) 
 }
 
 func CopyAssets(outputFileName string, assetsDir string) error {
+	if assetsDir == "" {
+		return nil
+	}
 	files, err := os.ReadDir(assetsDir)
 	assetsDir = path.Clean(assetsDir)
 	outputDir := path.Dir(outputFileName)

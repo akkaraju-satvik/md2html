@@ -32,7 +32,7 @@ func newConfig() Config {
 	conf.Version = "1.0.0"
 	conf.Favicon = "favicon.ico"
 	conf.Github = "https://github.com"
-	conf.AssetsDir = "assets"
+	conf.AssetsDir = ""
 	conf.OutputDir = "dist"
 	return conf
 }
