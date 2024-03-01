@@ -37,9 +37,11 @@ func HandleLists(fileLines *[]string, i int, k string) int {
 func HandleInlineCode(lineContent string) string {
 	tickCount := strings.Count(lineContent, "`")
 	for i := 0; i < tickCount/2; i++ {
-		lineContent = html.EscapeString(lineContent)
 		lineContent = strings.Replace(lineContent, "`", "<code>", 1)
 		lineContent = strings.Replace(lineContent, "`", "</code>", 1)
+		inlineCode := lineContent[strings.Index(lineContent, "<code>")+6 : strings.Index(lineContent, "</code>")]
+		inlineCode = html.EscapeString(inlineCode)
+		lineContent = strings.Replace(lineContent, lineContent[strings.Index(lineContent, "<code>"):strings.Index(lineContent, "</code>")+7], "<code>"+inlineCode+"</code>", 1)
 		lineContent = strings.Replace(lineContent, "<code></code>", "``", -1)
 		lineContent = strings.Replace(lineContent, "</code><code>", "``", -1)
 	}
