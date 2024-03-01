@@ -1,0 +1,8 @@
+projectName: md2htm
+description: Markdown to HTML converter
+version: 1.0.0
+author:
+  name: Akkaraju Satvik
+  email: satvik.akkaraju@gmail.com
+outputDir: docs
+github: github.com/akkaraju-satvik/md2htm
