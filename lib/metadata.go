@@ -89,6 +89,9 @@ func HandleMetadata(fileLines []string, metadataValues *map[string]interface{}) 
 }
 
 func CopyAssets(outputFileName string, assetsDir string) error {
+	if assetsDir == "" {
+		return nil
+	}
 	files, err := os.ReadDir(assetsDir)
 	assetsDir = path.Clean(assetsDir)
 	outputDir := path.Dir(outputFileName)
