@@ -7,6 +7,20 @@ pageTitle: Home
 
 A simple markdown to html converter.
 
+## Installation
+
+### Download the binary
+
+You can download the binary for your system from the [releases](https://github.com/akkaraju-satvik/md2htm/releases) page.
+
+### Build from source using Go
+
+```bash
+git clone
+cd md2htm
+go install
+```
+
 ## Usage
 
 Use this command to convert a markdown file to html:
